@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 
+#define HASHTABLE_SIZE 8
 // RecordType
 struct RecordType
 {
@@ -9,14 +11,20 @@ struct RecordType
 };
 
 // Fill out this structure
-struct HashType
+typedef struct HashType
 {
+	int id;
+	char name;
+	int order;
+	struct HashType* next;
 
-};
+} HashType_t;
 
 // Compute the hash function
 int hash(int x)
 {
+
+	return x % HASHTABLE_SIZE;
 
 }
 
@@ -77,9 +85,32 @@ void displayRecordsInHash(struct HashType *pHashArray, int hashSz)
 {
 	int i;
 
+	struct HashType * nextPtr = NULL;
+
 	for (i=0;i<hashSz;++i)
 	{
-		// if index is occupied with any records, print all
+
+		printf("Index: %d\n", i);
+		nextPtr = (pHashArray+i);
+
+		printf("%d ", nextPtr->id);
+		printf("%c ", nextPtr->name);
+		printf("%d ", nextPtr->order);
+		nextPtr = nextPtr->next;
+
+		while (nextPtr != NULL)
+		{
+			
+			printf("-> ");
+			printf("%d ", nextPtr->id);
+			printf("%c ", nextPtr->name);
+			printf("%d ", nextPtr->order);
+
+			nextPtr = nextPtr->next;
+		};
+
+		printf("\n");
+		
 	}
 }
 
@@ -90,5 +121,103 @@ int main(void)
 
 	recordSz = parseData("input.txt", &pRecords);
 	printRecords(pRecords, recordSz);
-	// Your hash implementation
+
+	struct HashType phTable[HASHTABLE_SIZE];
+
+	int hashNumber = 0;
+
+	for(int index = 0; index < HASHTABLE_SIZE; ++index)
+	{
+
+		phTable[index].id = 0;
+		phTable[index].order = 0;
+		phTable[index].name = '\0';
+		phTable[index].next = NULL;
+
+	}
+
+	for(int index = 0; index < recordSz; ++index)
+	{
+
+		hashNumber = hash(pRecords[index].id);
+		if(phTable[hashNumber].id == 0)
+		{
+
+			phTable[hashNumber].id = pRecords[index].id;
+			phTable[hashNumber].name = pRecords[index].name;
+			phTable[hashNumber].order = pRecords[index].order;
+
+		}
+		else
+		{
+
+
+			
+			if(phTable[hashNumber].next != NULL)
+			{
+
+			
+				struct HashType* nextPtr = NULL;
+				nextPtr = phTable[hashNumber].next;
+				while(nextPtr->next != NULL)
+				{
+
+					nextPtr = nextPtr->next;
+
+				}
+
+				nextPtr->next = (struct HashType*)malloc(sizeof(struct HashType));
+				nextPtr = nextPtr->next;
+				nextPtr->id = pRecords[index].id;
+				nextPtr->name = pRecords[index].name;
+				nextPtr->order = pRecords[index].order;
+				nextPtr->next = NULL;
+
+			}
+			else
+			{
+
+				phTable[hashNumber].next = (struct HashType*)malloc(sizeof(struct HashType));
+				struct HashType* nextPtr = phTable[hashNumber].next;
+				nextPtr->id = pRecords[index].id;
+				nextPtr->name = pRecords[index].name;
+				nextPtr->order = pRecords[index].order;
+				nextPtr->next = NULL;
+
+			}
+			
+
+
+		}
+
+
+	}
+
+
+	displayRecordsInHash(phTable, HASHTABLE_SIZE);
+
+	for(int index = 0; index < HASHTABLE_SIZE; ++index)
+	{
+
+		if(phTable[index].next != NULL)
+		{
+
+			struct HashType *nextPtr = phTable[index].next;
+			struct HashType *tempPtr;
+			
+
+			while(nextPtr != NULL)
+			{
+
+				tempPtr = nextPtr->next;
+				free(nextPtr);
+				nextPtr = tempPtr;
+
+			}
+
+		}
+
+
+
+	}
 }
